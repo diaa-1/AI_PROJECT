@@ -27,16 +27,24 @@ except Exception as e:
     traceback.print_exc()
     sys.exit(1)
 
-data_file = None
-if hasattr(backtracking, "DATASET_FILE"):
-    data_file = Path(getattr(backtracking, "DATASET_FILE"))
-else:
-    data_file = Path(__file__).parent / "data" / "g_cycle_5.edgelist"
 
-data_file = os.path.normpath(str(data_file))
+
+if len(sys.argv) > 1:
+    override = sys.argv[1]
+    print(f"[CLI] Dataset overridden to: {override}")
+    data_file = Path(override)
+else:
+    if hasattr(backtracking, "DATASET_FILE"):
+        data_file = Path(backtracking.DATASET_FILE)
+    else:
+        data_file = Path(__file__).parent / "data" / "g_cycle_5.edgelist"
+
+data_file = Path(os.path.normpath(str(data_file)))
+
 print("Looking for data file at:", data_file)
 
-if not os.path.exists(data_file):
+
+if not data_file.exists():
     print("ERROR: data file not found. Please check the path and filename.")
     sys.exit(1)
 
