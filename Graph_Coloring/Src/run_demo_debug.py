@@ -1,46 +1,39 @@
 import os
 import sys
 import traceback
+from pathlib import Path
 
 sys.path.append(os.path.dirname(__file__))
 
 print("=== RUN DEMO DEBUG START ===")
-
 print("Current folder:", os.path.dirname(__file__))
 print("Files in folder:", os.listdir(os.path.dirname(__file__)))
 
 try:
+    import graph_utils
     from graph_utils import load_edgelist, draw_colored_graph
-    print("=============================================================================")
-    print("Imported graph_utils ")
-    print("=============================================================================")
-
+    print("Imported graph_utils")
 except Exception as e:
     print("Failed to import graph_utils:", e)
     traceback.print_exc()
     sys.exit(1)
 
 try:
+    import backtracking
     from backtracking import try_min_colors
-    print("=============================================================================")
-    print("Imported backtracking.try_min_colors ")
-    print("=============================================================================")
+    print("Imported backtracking")
+except Exception as e:
+    print("Failed to import backtracking:", e)
+    traceback.print_exc()
+    sys.exit(1)
 
-except Exception as e1:
-    print("Import coloring_algorithm failed:", e1)
-    print("Trying to import backtracking.try_min_colors as fallback...")
-    try:
-        from backtracking import try_min_colors
-        print("=============================================================================")
-        print("Imported backtracking.try_min_colors ")
-        print("=============================================================================")
+data_file = None
+if hasattr(backtracking, "DATASET_FILE"):
+    data_file = Path(getattr(backtracking, "DATASET_FILE"))
+else:
+    data_file = Path(__file__).parent / "data" / "g_cycle_5.edgelist"
 
-    except Exception as e2:
-        print("Import fallback failed:", e2)
-        traceback.print_exc()
-        sys.exit(1)
-
-data_file = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "Data", "g_cycle_5.edgelist"))
+data_file = os.path.normpath(str(data_file))
 print("Looking for data file at:", data_file)
 
 if not os.path.exists(data_file):

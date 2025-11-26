@@ -1,26 +1,57 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+from pathlib import Path
 import json
 
-def load_edgelist(path):
+DEFAULT_DATA_PATH = Path(__file__).parent / "data" / "g_cycle_5.edgelist"
+
+def load_edgelist(path=None):
+    """
+    Read an edgelist / .col / .json graph.
+    If path is None, uses DEFAULT_DATA_PATH.
+    Returns a networkx.Graph().
+    """
+    p = Path(path) if path is not None else DEFAULT_DATA_PATH
+    if not p.exists():
+        raise FileNotFoundError(f"Dataset not found: {p}")
+
+    ext = p.suffix.lower()
+    if ext == ".json":
+        return load_json_graph(p)
+
     G = nx.Graph()
-    with open(path, 'r') as f:
+    edges = []
+    with open(p, 'r', encoding='utf-8') as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith('#'):
+            if not line:
+                continue
+            if line.startswith('c') or line.startswith('#'):
                 continue
             parts = line.split()
-            if len(parts) < 2:
+            if parts[0] == 'e' and len(parts) >= 3:
+                try:
+                    u = int(parts[1]); v = int(parts[2])
+                except ValueError:
+                    continue
+                edges.append((u, v))
                 continue
-            u, v = int(parts[0]), int(parts[1])
-            G.add_edge(u, v)
+            if len(parts) >= 2:
+                try:
+                    u = int(parts[0]); v = int(parts[1])
+                except ValueError:
+                    continue
+                edges.append((u, v))
+    if edges:
+        G.add_edges_from(edges)
     return G
 
 def save_edgelist(G, path):
     nx.write_edgelist(G, path, data=False)
 
 def load_json_graph(path):
-    with open(path, 'r') as f:
+    p = Path(path)
+    with open(p, 'r', encoding='utf-8') as f:
         obj = json.load(f)
     G = nx.Graph()
     nodes = obj.get("nodes", [])
@@ -55,7 +86,10 @@ def draw_colored_graph(G, colors_dict=None, title=None, figsize=(6,6)):
         plt.title(title)
     plt.show()
 
-if __name__ == "__main__":
-   
-    G = load_edgelist("c:/Users/W.I/OneDrive/Desktop/AI_PROJECT/Graph_Coloring/data/g_cycle_5.edgelist")
-    draw_colored_graph(G, title="Uncolored Graph")
+if __name__ == "_main_":
+    try:
+        G = load_edgelist(None)
+        print("Loaded demo graph:", G.number_of_nodes(), "nodes,", G.number_of_edges(), "edges")
+        draw_colored_graph(G, title="Uncolored Graph (demo)")
+    except Exception as e:
+        print("graph_utils demo error:", e)
